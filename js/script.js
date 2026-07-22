@@ -18,9 +18,11 @@ const modalExplanation = document.getElementById('modalExplanation');
 // - Restrict dates to NASA's image archive (starting from 1995)
 setupDateInputs(startInput, endInput);
 
-// Your NASA API key comes from config.js, which is gitignored so it
-// never gets committed. See config.example.js for setup instructions.
-const apiKey = NASA_API_KEY;
+// Your NASA API key comes from config.js (gitignored, for local development).
+// If config.js isn't present -- like on the deployed site, since it's not
+// committed to GitHub -- fall back to NASA's public DEMO_KEY so the site
+// still works, just with a lower rate limit.
+const apiKey = (typeof NASA_API_KEY !== 'undefined') ? NASA_API_KEY : 'DEMO_KEY';
 
 // Some APOD video entries link straight to apod.nasa.gov instead of an
 // embeddable YouTube/Vimeo player. Those sites block being shown in an
