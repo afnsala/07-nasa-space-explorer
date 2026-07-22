@@ -22,7 +22,7 @@ setupDateInputs(startInput, endInput);
 // If config.js isn't present -- like on the deployed site, since it's not
 // committed to GitHub -- fall back to NASA's public DEMO_KEY so the site
 // still works, just with a lower rate limit.
-const apiKey = (typeof NASA_API_KEY !== 'undefined') ? NASA_API_KEY : 'DEMO_KEY';
+const apiKey = (typeof NASA_API_KEY !== 'undefined') ? NASA_API_KEY : 'DEMO_KEY'
 
 // Some APOD video entries link straight to apod.nasa.gov instead of an
 // embeddable YouTube/Vimeo player. Those sites block being shown in an
