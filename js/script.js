@@ -7,7 +7,7 @@ const gallery = document.getElementById('gallery');
 // Find our modal elements on the page
 const modal = document.getElementById('modal');
 const modalClose = document.getElementById('modalClose');
-const modalImg = document.getElementById('modalImg');
+const modalMedia = document.getElementById('modalMedia');
 const modalTitle = document.getElementById('modalTitle');
 const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
@@ -18,15 +18,40 @@ const modalExplanation = document.getElementById('modalExplanation');
 // - Restrict dates to NASA's image archive (starting from 1995)
 setupDateInputs(startInput, endInput);
 
-// Your NASA API key
-// DEMO_KEY works for testing, but has a low rate limit
-// Get your own free key at https://api.nasa.gov/ for more requests per hour
-const apiKey = 'DEMO_KEY';
+// Your NASA API key comes from config.js, which is gitignored so it
+// never gets committed. See config.example.js for setup instructions.
+const apiKey = NASA_API_KEY;
+
+// Some APOD video entries link straight to apod.nasa.gov instead of an
+// embeddable YouTube/Vimeo player. Those sites block being shown in an
+// iframe, so we only attempt to embed URLs we know will actually work.
+function isEmbeddableVideo(url) {
+  return url.includes('youtube.com/embed') || url.includes('player.vimeo.com');
+}
 
 // Opens the modal and fills it in with details for one gallery item
 function openModal(item) {
-  modalImg.src = item.url;
-  modalImg.alt = item.title;
+  if (item.media_type === 'video' && isEmbeddableVideo(item.url)) {
+    // Show an embedded video player
+    modalMedia.innerHTML = `
+      <div class="video-wrapper">
+        <iframe src="${item.url}" title="${item.title}" allowfullscreen></iframe>
+      </div>
+    `;
+  } else if (item.media_type === 'video') {
+    // This video can't be embedded, so show its thumbnail with a link out to it instead
+    const thumbnail = item.thumbnail_url || 'https://placehold.co/700x400/0b3d91/ffffff?text=Video';
+    modalMedia.innerHTML = `
+      <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="video-fallback">
+        <img src="${thumbnail}" alt="${item.title}" />
+        <span class="play-icon">▶</span>
+        <span class="video-fallback-label">Watch on NASA's site</span>
+      </a>
+    `;
+  } else {
+    modalMedia.innerHTML = `<img src="${item.url}" alt="${item.title}" />`;
+  }
+
   modalTitle.textContent = item.title;
   modalDate.textContent = item.date;
   modalExplanation.textContent = item.explanation;
@@ -36,6 +61,8 @@ function openModal(item) {
 // Hides the modal
 function closeModal() {
   modal.classList.add('hidden');
+  // Clear the media container so a playing video stops once the modal closes
+  modalMedia.innerHTML = '';
 }
 
 // Close the modal when the "X" button is clicked
@@ -63,34 +90,51 @@ button.addEventListener('click', () => {
   `;
 
   // Build the API URL using the selected date range
-  const apiUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&start_date=${startDate}&end_date=${endDate}`;
+  // thumbs=True asks NASA to include a thumbnail image for video entries
+  const apiUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&start_date=${startDate}&end_date=${endDate}&thumbs=True`;
 
   // Fetch the data from NASA's APOD API
   fetch(apiUrl)
     .then((response) => response.json())
     .then((data) => {
-      // Clear the gallery before adding new images
+      // Clear the gallery before adding new items
       gallery.innerHTML = '';
 
       // Loop through each item NASA sent back and display it
       data.forEach((item) => {
-        // Some entries are videos instead of images, so we check the media_type
-        if (item.media_type === 'image') {
-          const galleryItem = document.createElement('div');
-          galleryItem.className = 'gallery-item';
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+
+        if (item.media_type === 'video') {
+          // Some video entries include a thumbnail image; fall back to a
+          // simple placeholder graphic if NASA didn't provide one
+          const thumbnail = item.thumbnail_url || 'https://placehold.co/500x300/0b3d91/ffffff?text=Video';
+
+          galleryItem.innerHTML = `
+            <div class="video-thumb">
+              <img src="${thumbnail}" alt="${item.title}" />
+              <span class="video-badge">🎥 Video</span>
+              <span class="play-icon">▶</span>
+            </div>
+            <p><strong>${item.title}</strong></p>
+            <p>${item.date}</p>
+          `;
+        } else {
+          // Regular image entries
           galleryItem.innerHTML = `
             <img src="${item.url}" alt="${item.title}" />
             <p><strong>${item.title}</strong></p>
             <p>${item.date}</p>
           `;
-
-          // When this item is clicked, open the modal with its full details
-          galleryItem.addEventListener('click', () => {
-            openModal(item);
-          });
-
-          gallery.appendChild(galleryItem);
         }
+
+        // When this item is clicked, open the modal with its full details
+        // (the modal itself decides whether to show an image or an embedded video)
+        galleryItem.addEventListener('click', () => {
+          openModal(item);
+        });
+
+        gallery.appendChild(galleryItem);
       });
     })
     .catch((error) => {

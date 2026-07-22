@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NASA Space Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -31,7 +34,7 @@
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <button id="modalClose" class="modal-close">&times;</button>
-      <img id="modalImg" src="" alt="" />
+      <div id="modalMedia" class="modal-media"></div>
       <h2 id="modalTitle"></h2>
       <p id="modalDate" class="modal-date"></p>
       <p id="modalExplanation"></p>
@@ -39,6 +42,7 @@
   </div>
 
   <script src="js/dateRange.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>
